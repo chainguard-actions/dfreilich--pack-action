@@ -1,0 +1,36 @@
+# action.yml
+name: 'Pack Docker Action'
+description: 'Run the Cloud Native Buildpacks Pack CLI'
+author: 'dfreilich'
+branding:
+  color: blue
+  icon: layers   # from https://feathericons.com/
+
+inputs:
+  args:
+    description: Arguments for pack
+    required: true
+  version:
+    description: Version of pack to use
+    required: false
+    default: '0.24.0'
+
+runs:
+  using: "composite"
+  steps:
+    - id: install
+      uses: buildpacks/github-actions/setup-pack@918407dc3eb8c209c5b69902b5024ebcb63fe3b5 # v4.6.0
+      with:
+        pack-version: ${{ inputs.version }}
+    - id: cleanup
+      shell: bash
+      run: |
+        rm "${HOME}"/bin/jq
+        rm "${HOME}"/bin/crane
+        rm "${HOME}"/bin/yj
+    - id: run-pack
+      shell: bash
+      env:
+        PACK_ARGS: ${{ inputs.args }}
+      run: |
+        pack $PACK_ARGS
