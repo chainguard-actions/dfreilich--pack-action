@@ -8,6 +8,8 @@ Hardened by [Chainguard](https://www.chainguard.dev) from the upstream action at
 
 | Version | Tag | Upstream commit |
 |---------|-----|-----------------|
+| v2.0.12 | [`v2.0.12`](https://github.com/chainguard-actions/pack-action/tree/v2.0.12) | — |
+| v2.0.13 | [`v2.0.13`](https://github.com/chainguard-actions/pack-action/tree/v2.0.13) | — |
 | v2.0.15 | [`v2.0.15`](https://github.com/chainguard-actions/pack-action/tree/v2.0.15) | — |
 | v2.1.1 | [`v2.1.1`](https://github.com/chainguard-actions/pack-action/tree/v2.1.1) | — |
 
