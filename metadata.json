@@ -1,7 +1,0 @@
-{
-  "owner": "dfreilich",
-  "name": "pack-action",
-  "visibility": "internal",
-  "description": "Run the Cloud Native Buildpacks Pack CLI",
-  "block_publish": false
-}
