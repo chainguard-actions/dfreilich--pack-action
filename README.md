@@ -9,7 +9,7 @@ Hardened by [Chainguard](https://www.chainguard.dev) from the upstream action at
 | Version | Tag | Upstream commit |
 |---------|-----|-----------------|
 | v2.0.12 | [`v2.0.12`](https://github.com/chainguard-actions/dfreilich-pack-action/tree/v2.0.12) | — |
-| v2.0.13 | [`v2.0.13`](https://github.com/chainguard-actions/dfreilich-pack-action/tree/v2.0.13) | — |
+| v2.0.13 | [`v2.0.13`](https://github.com/chainguard-actions/dfreilich-pack-action/tree/v2.0.13) | [`f3c6293`](https://github.com/dfreilich/pack-action/commit/f3c6293c1f839fcc94442825cef2662a5f3bc5b1) |
 | v2.0.15 | [`v2.0.15`](https://github.com/chainguard-actions/dfreilich-pack-action/tree/v2.0.15) | — |
 | v2.1.1 | [`v2.1.1`](https://github.com/chainguard-actions/dfreilich-pack-action/tree/v2.1.1) | — |
 
