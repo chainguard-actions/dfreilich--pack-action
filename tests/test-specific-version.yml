@@ -1,4 +1,4 @@
-name: Test basic usage - pack version
+name: Test specific pack version
 on:
   workflow_dispatch:
 jobs:
@@ -25,7 +25,7 @@ jobs:
         continue-on-error: true
         with:
           args: version
-          version: '0.33.2'
+          version: '0.28.0'
 
       - name: Assert action ran (success or graceful failure)
         env:
@@ -33,7 +33,7 @@ jobs:
         run: |
           echo "action outcome: $OUTCOME"
           if [ "$OUTCOME" = "success" ]; then
-            echo "PASS: action succeeded"
+            echo "PASS: action succeeded with pack version 0.28.0"
           elif [ "$OUTCOME" = "failure" ]; then
             echo "PASS: action failed gracefully (setup-pack or network issue under act)"
           else
