@@ -1,4 +1,4 @@
-name: Test basic usage - pack version
+name: Test custom pack version
 on:
   workflow_dispatch:
 jobs:
@@ -10,6 +10,7 @@ jobs:
         uses: .
         with:
           args: version
-      - name: Assert pack ran successfully
+          version: '0.21.0'
+      - name: Assert pack ran with custom version
         run: |
-          echo "PASS: pack version ran without error"
+          echo "PASS: pack ran with custom version 0.21.0"

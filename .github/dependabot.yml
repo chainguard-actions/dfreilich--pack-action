@@ -1,0 +1,17 @@
+version: 2
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "daily"
+    labels:
+      - automerge
+      - type:dependency-upgrade
+
+  - package-ecosystem: "docker"
+    directory: ".github/"
+    schedule:
+      interval: "daily"
+    labels:
+      - automerge
+      - type:dependency-upgrade

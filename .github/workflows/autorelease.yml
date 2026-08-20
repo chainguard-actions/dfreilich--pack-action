@@ -1,0 +1,63 @@
+name: autorelease
+
+on:
+#  push:
+#    branches:
+#      - main
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        required: false
+        description: The release tag to distribute. If empty, it will bump the latest version.
+
+permissions:
+  contents: write
+
+jobs:
+  release-and-tag:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@0717577d45739eb3c851188b29f50ed6c0b2194e # v2
+      - name: last-version
+        uses: actions/github-script@211cb3fefb35a799baa5156f9321bb774fe56294 # v5
+        id: version
+        with:
+          result-encoding: string
+          script: |
+            let tag = (context.payload.inputs && context.payload.inputs.tag_name)
+              || (await github.repos.getLatestRelease({owner: context.repo.owner,repo: context.repo.repo})).data.name;
+
+            if (!tag) {
+              throw "ERROR: unable to determine tag";
+            }
+
+            return tag.replace(/^v/, '');
+      - name: Bump Release
+        id: bump-version
+        env:
+          VERSION_RESULT: ${{ steps.version.outputs.result }}
+        run: |
+          v=$(printf '%s' "$VERSION_RESULT" | tr -d '\n\r')
+          bump=$(echo "${v%.*}.$((${v##*.}+1))")
+          major=$(echo "${v%.*}")
+          echo "$bump"
+          echo "$major"
+          safe_bump=$(printf '%s' "$bump" | tr -d '\n\r')
+          safe_major=$(printf '%s' "$major" | tr -d '\n\r')
+          echo "ACTION_TAG=v${safe_bump}" >> "$GITHUB_ENV"
+          echo "MAJOR_TAG=v${safe_major}" >> "$GITHUB_ENV"
+      - name: Release
+        uses: actions/create-release@0cb9c9b65d5d1901c1f53e5e66eaf4afd303e70e # v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ env.ACTION_TAG }}
+          release_name: ${{ env.ACTION_TAG }}
+          body: |
+            # pack-action ${{ env.ACTION_TAG }}
+            This is an automated release of the Pack Action, incorporating a dependency update. For detailed usage
+            documentation, check out the the documentation [here](https://github.com/dfreilich/pack-action#usage)
+      - name: Update major tag
+        run: |
+          git tag "$MAJOR_TAG"
+          git push -f origin "$MAJOR_TAG"
