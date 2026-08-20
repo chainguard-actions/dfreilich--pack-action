@@ -1,0 +1,149 @@
+name: test/release-v2
+
+on:
+  push:
+    tags:
+      - 'v2*' # Push events to matching v2, i.e. v2.013
+  workflow_dispatch:
+#  schedule:
+#    - cron: '0 0 * * *'
+
+env:
+  TEST_APP_PATH: ".github/workflows/test-app/"
+  BUILDER: "paketobuildpacks/builder:tiny"
+  IMG_NAME: 'pack_action_test_img'
+  USERNAME: 'dfreilich'
+  REGISTRY: 'ghcr.io'
+
+permissions:
+  contents: read
+
+jobs:
+  version:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@0717577d45739eb3c851188b29f50ed6c0b2194e # v2
+      - name: Pack Version
+        uses: dfreilich/pack-action@6e760443286e2a7f651646364df366a553dcff71 # v2.1.1
+        with:
+          args: 'version'
+  local_build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@0717577d45739eb3c851188b29f50ed6c0b2194e # v2
+      - name: Pack Build
+        uses: dfreilich/pack-action@6e760443286e2a7f651646364df366a553dcff71 # v2.1.1
+        with:
+          args: 'build test_img --builder ${{ env.BUILDER }} --path ${{ env.TEST_APP_PATH }}'
+      - name: Test App
+        run: |
+          docker run -d -p 8080:8080 --name testapp test_img
+          curl --version
+          sleep 30s
+          curl --request GET --url http://localhost:8080
+      - name: Pack Rebase
+        uses: dfreilich/pack-action@6e760443286e2a7f651646364df366a553dcff71 # v2.1.1
+        with:
+          args: 'rebase test_img'
+      - name: Inspect Image
+        uses: dfreilich/pack-action@6e760443286e2a7f651646364df366a553dcff71 # v2.1.1
+        with:
+          args: 'inspect-image test_img'
+      - name: Clean Up
+        run: |
+          docker container stop testapp
+  dockerhub_remote_build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@0717577d45739eb3c851188b29f50ed6c0b2194e # v2
+      - name: Set App Name
+        run: 'echo "IMG_NAME=$(echo ${USERNAME})/$(echo ${IMG_NAME})" >> $GITHUB_ENV'
+      - name: login
+        uses: docker/login-action@dd4fa0671be5250ee6f50aedf4cb05514abda2c7 # v1
+        with:
+          username: ${{ env.USERNAME }}
+          password: ${{ secrets.DOCKER_TOKEN }}
+      - name: Pack Remote Build
+        uses: dfreilich/pack-action@6e760443286e2a7f651646364df366a553dcff71 # v2.1.1
+        with:
+          args: 'build ${{ env.IMG_NAME }} --builder ${{ env.BUILDER }} --path ${{ env.TEST_APP_PATH }} --publish'
+      - name: Test App
+        run: |
+          docker run -d -p 8080:8080 --name testapp ${{ env.IMG_NAME }}
+          sleep 30s
+          curl --request GET --url http://localhost:8080
+      - name: Pack Rebase
+        uses: dfreilich/pack-action@6e760443286e2a7f651646364df366a553dcff71 # v2.1.1
+        with:
+          args: 'rebase ${{ env.IMG_NAME }}'
+      - name: Inspect Image
+        uses: dfreilich/pack-action@6e760443286e2a7f651646364df366a553dcff71 # v2.1.1
+        with:
+          args: 'inspect-image ${{ env.IMG_NAME }}'
+      - name: Clean Up
+        run: |
+          docker container stop testapp
+  github_registry_remote_build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@0717577d45739eb3c851188b29f50ed6c0b2194e # v2
+      - name: Set App Name
+        run: 'echo "IMG_NAME=$(echo ${REGISTRY})/$(echo ${USERNAME})/$(echo ${IMG_NAME})" >> $GITHUB_ENV'
+      - id: login
+        uses: docker/login-action@dd4fa0671be5250ee6f50aedf4cb05514abda2c7 # v1
+        with:
+          username: ${{ env.USERNAME }}
+          password: ${{ secrets.GH_PACKAGES_PAT }}
+          registry: ${{ env.REGISTRY }}
+      - name: Pack Remote Build
+        uses: dfreilich/pack-action@6e760443286e2a7f651646364df366a553dcff71 # v2.1.1
+        with:
+          args: 'build ${{ env.IMG_NAME }} --builder ${{ env.BUILDER }} --path ${{ env.TEST_APP_PATH }} --publish'
+      - name: Test App
+        run: |
+          docker run -d -p 8080:8080 --name testapp ${{ env.IMG_NAME }}
+          sleep 30s
+          curl --request GET --url http://localhost:8080
+      - name: Pack Rebase
+        uses: dfreilich/pack-action@6e760443286e2a7f651646364df366a553dcff71 # v2.1.1
+        with:
+          args: 'rebase ${{ env.IMG_NAME }}'
+      - name: Inspect Image
+        uses: dfreilich/pack-action@6e760443286e2a7f651646364df366a553dcff71 # v2.1.1
+        with:
+          args: 'inspect-image ${{ env.IMG_NAME }}'
+      - name: Clean Up
+        run: |
+          docker container stop testapp
+  local_with_secure_builder:
+    runs-on: ubuntu-latest
+    env:
+      BUILDER: 'ghcr.io/dfreilich/paketobuildpacks/builder:tiny'
+    steps:
+      - uses: actions/checkout@0717577d45739eb3c851188b29f50ed6c0b2194e # v2
+      - id: login
+        uses: docker/login-action@dd4fa0671be5250ee6f50aedf4cb05514abda2c7 # v1
+        with:
+          username: ${{ env.USERNAME }}
+          password: ${{ secrets.GH_PACKAGES_PAT }}
+          registry: ${{ env.REGISTRY }}
+      - name: Pack Local Build
+        uses: dfreilich/pack-action@6e760443286e2a7f651646364df366a553dcff71 # v2.1.1
+        with:
+          args: 'build ${{ env.IMG_NAME }} --builder ${{ env.BUILDER }} --path ${{ env.TEST_APP_PATH }}'
+      - name: Test App
+        run: |
+          docker run -d -p 8080:8080 --name testapp ${{ env.IMG_NAME }}
+          sleep 30s
+          curl --request GET --url http://localhost:8080
+      - name: Pack Rebase
+        uses: dfreilich/pack-action@6e760443286e2a7f651646364df366a553dcff71 # v2.1.1
+        with:
+          args: 'rebase ${{ env.IMG_NAME }}'
+      - name: Inspect Image
+        uses: dfreilich/pack-action@6e760443286e2a7f651646364df366a553dcff71 # v2.1.1
+        with:
+          args: 'inspect-image ${{ env.IMG_NAME }}'
+      - name: Clean Up
+        run: |
+          docker container stop testapp

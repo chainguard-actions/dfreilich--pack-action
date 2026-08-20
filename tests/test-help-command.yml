@@ -1,4 +1,4 @@
-name: Test basic usage - pack version
+name: Test pack help command
 on:
   workflow_dispatch:
 jobs:
@@ -9,7 +9,7 @@ jobs:
       - id: action
         uses: .
         with:
-          args: version
-      - name: Assert pack ran successfully
+          args: help
+      - name: Assert pack help ran successfully
         run: |
-          echo "PASS: pack version ran without error"
+          echo "PASS: pack help ran without error"
